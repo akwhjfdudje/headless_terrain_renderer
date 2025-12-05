@@ -8,7 +8,7 @@
 
 /**
  * Convert array of float3 normals into 8-bit RGB.
- * n = [-1,1] → [0,255]
+ * n = [-1,1] -> [0,255]
  */
 void convertNormalsToRGB(
     const float3* normals,
