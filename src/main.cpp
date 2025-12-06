@@ -9,6 +9,8 @@ extern "C" void generateHeightmap(
     float scale, int seed, float mix_ratio
 );
 
+extern "C" void normalizeHeightmap(float* heightmap, int width, int height, float min_val, float max_val);
+
 struct RGB { unsigned char r, g, b; };
 
 RGB heightToColor(float h) {
@@ -88,40 +90,16 @@ void writeColorPPM(const std::string& filename, const std::vector<float>& hmap, 
     std::cout << "Wrote " << filename << "\n";
 }
 
-void writeSideViewPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
-    const int outWidth  = width;
-    const int outHeight = height / 2; // vertical scaling
-    std::vector<RGB> image(outWidth * outHeight, {135, 206, 235}); // sky
-
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
-            // Map height [-1,1] to pixel row
-            int row = outHeight - 1 - int((hmap[y * width + x] + 1.0f) * 0.5f * outHeight);
-            row = std::clamp(row, 0, outHeight - 1);
-
-            // Fill from row to bottom
-            for (int r = row; r < outHeight; r++) {
-                image[r * outWidth + x] = heightToColor(hmap[y * width + x]);
-            }
-        }
-    }
-
-    std::ofstream out(filename, std::ios::binary);
-    out << "P6\n" << outWidth << " " << outHeight << "\n255\n";
-    out.write(reinterpret_cast<char*>(image.data()), outWidth * outHeight * 3);
-    out.close();
-    std::cout << "Wrote " << filename << "\n";
-}
-
 void writeIsometricPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
-    int outWidth  = width;
-    int outHeight = height;
+    int outWidth  = width * 2;
+    int outHeight = height * 2;
+    float zoom = 1.0f;
     std::vector<RGB> image(outWidth * outHeight, {0, 0, 0});
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int isoX = (x - y) + height / 2;
-            int isoY = (x + y) / 2 - int(hmap[y * width + x] * outHeight / 2);
+            int isoX = (x - y) * zoom + outWidth / 2;
+            int isoY = (x + y) * zoom / 2 - int(hmap[y * width + x] * outHeight / (2 * zoom)) + outHeight / 3;
             
             if (isoX >= 0 && isoX < outWidth && isoY >= 0 && isoY < outHeight) {
                 image[isoY * outWidth + isoX] = shadeTerrain(hmap, x, y, width, height);
@@ -147,16 +125,20 @@ int main() {
     const int height = 1024;
 
     // Noise settings
-    float scale      = 500.0f;   // larger = smoother
+    float scale      = 1000.0f;   // larger = smoother
     int seed         = 4132778;
-    float mix_ratio  = 0.75f;   // 0=Perlin, 1=Voronoi
+    float mix_ratio  = 0.4f;   // 0=Perlin, 1=Voronoi
 
     std::vector<float> heightmap(width * height);
 
     generateHeightmap(heightmap.data(), width, height, scale, seed, mix_ratio);
 
+    // Normalize:
+    float min_val = *std::min_element(heightmap.begin(), heightmap.end());
+    float max_val = *std::max_element(heightmap.begin(), heightmap.end());
+    normalizeHeightmap(heightmap.data(), width, height, min_val, max_val);
+
     writeColorPPM("terrain.ppm", heightmap, width, height);
-    writeSideViewPPM("terrain_side.ppm", heightmap, width, height);
     writeIsometricPPM("terrain_iso.ppm", heightmap, width, height);
     return 0;
 }
