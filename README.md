@@ -11,5 +11,6 @@ cmake --build build --config Release
 ```
 
 ## Samples
-<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/b2e4d710-52eb-4463-a236-6abed8c9e6fc" />
-<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/a3b30038-3414-41d4-9bd8-37ea2e1f5f4f" />
+<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/d006d829-04c8-4170-a5aa-196ce273f386" />
+<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/e2fc8598-149e-43f1-a758-9ebc47ce4ab2" />
+<img width="512" height="512" alt="image" src="https://github.com/user-attachments/assets/67b4e865-93ee-40ac-9521-42a4fc693ede" />
