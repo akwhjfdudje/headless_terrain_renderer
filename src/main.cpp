@@ -115,9 +115,9 @@ void writeSideViewPPM(const std::string& filename, const std::vector<float>& hma
 }
 
 void writeIsometricPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
-    int outWidth  = width + height;
-    int outHeight = (width + height) / 2;
-    std::vector<RGB> image(outWidth * outHeight, {135, 206, 235}); // sky
+    int outWidth  = width;
+    int outHeight = height;
+    std::vector<RGB> image(outWidth * outHeight, {0, 0, 0});
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -148,9 +148,9 @@ int main() {
     const int height = 1024;
 
     // Noise settings
-    float scale      = 250.0f;   // larger = smoother
-    int seed         = 3;
-    float mix_ratio  = 0.55f;   // 0=Perlin, 1=Voronoi
+    float scale      = 500.0f;   // larger = smoother
+    int seed         = 4132778;
+    float mix_ratio  = 0.75f;   // 0=Perlin, 1=Voronoi
 
     std::vector<float> heightmap(width * height);
 
