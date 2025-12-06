@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 // Declare your CUDA function
 extern "C" void generateHeightmap(
@@ -49,16 +50,68 @@ RGB heightToColor(float h) {
     }
 }
 
-void writeColorPPM(const std::string& filename, const float* hmap, int width, int height) {
+// Compute simple shading based on heightmap gradient
+RGB shadeTerrain(const std::vector<float>& hmap, int x, int y, int width, int height) {
+    int xm = std::max(x - 1, 0);
+    int xp = std::min(x + 1, width - 1);
+    int ym = std::max(y - 1, 0);
+    int yp = std::min(y + 1, height - 1);
+
+    float dzdx = (hmap[y * width + xp] - hmap[y * width + xm]) * 0.5f;
+    float dzdy = (hmap[yp * width + x] - hmap[ym * width + x]) * 0.5f;
+
+    // Light direction
+    float lx = 0.5f, ly = 0.5f, lz = 1.0f;
+    float len = std::sqrt(lx*lx + ly*ly + lz*lz);
+    lx /= len; ly /= len; lz /= len;
+
+    // Normal vector
+    float nx = -dzdx, ny = -dzdy, nz = 1.0f;
+    len = std::sqrt(nx*nx + ny*ny + nz*nz);
+    nx /= len; ny /= len; nz /= len;
+
+    float diff = std::max(0.0f, nx*lx + ny*ly + nz*lz); // diffuse shading
+
+    RGB base = heightToColor(hmap[y * width + x]);
+    return { (unsigned char)(base.r * diff), (unsigned char)(base.g * diff), (unsigned char)(base.b * diff) };
+}
+
+void writeColorPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
     std::ofstream out(filename, std::ios::binary);
     out << "P6\n" << width << " " << height << "\n255\n";
 
-    for (int i = 0; i < width * height; i++) {
-        RGB c = heightToColor(hmap[i]);
-        out.write((char*)&c, 3);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            RGB c = shadeTerrain(hmap, x, y, width, height);
+            out.write((char*)&c, 3);
+        }
     }
     out.close();
+    std::cout << "Wrote " << filename << "\n";
+}
 
+void writeSideViewPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
+    const int outWidth  = width;
+    const int outHeight = height / 2; // vertical scaling
+    std::vector<RGB> image(outWidth * outHeight, {135, 206, 235}); // sky
+
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            // Map height [-1,1] to pixel row
+            int row = outHeight - 1 - int((hmap[y * width + x] + 1.0f) * 0.5f * outHeight);
+            row = std::clamp(row, 0, outHeight - 1);
+
+            // Fill from row to bottom
+            for (int r = row; r < outHeight; r++) {
+                image[r * outWidth + x] = heightToColor(hmap[y * width + x]);
+            }
+        }
+    }
+
+    std::ofstream out(filename, std::ios::binary);
+    out << "P6\n" << outWidth << " " << outHeight << "\n255\n";
+    out.write(reinterpret_cast<char*>(image.data()), outWidth * outHeight * 3);
+    out.close();
     std::cout << "Wrote " << filename << "\n";
 }
 
@@ -81,7 +134,8 @@ int main() {
 
     generateHeightmap(heightmap.data(), width, height, scale, seed, mix_ratio);
 
-    writeColorPPM("terrain.ppm", heightmap.data(), width, height);
+    writeColorPPM("terrain.ppm", heightmap, width, height);
+    writeSideViewPPM("terrain_side.ppm", heightmap, width, height);
     return 0;
 }
 
