@@ -50,7 +50,6 @@ RGB heightToColor(float h) {
     }
 }
 
-// Compute simple shading based on heightmap gradient
 RGB shadeTerrain(const std::vector<float>& hmap, int x, int y, int width, int height) {
     int xm = std::max(x - 1, 0);
     int xp = std::min(x + 1, width - 1);
@@ -115,6 +114,29 @@ void writeSideViewPPM(const std::string& filename, const std::vector<float>& hma
     std::cout << "Wrote " << filename << "\n";
 }
 
+void writeIsometricPPM(const std::string& filename, const std::vector<float>& hmap, int width, int height) {
+    int outWidth  = width + height;
+    int outHeight = (width + height) / 2;
+    std::vector<RGB> image(outWidth * outHeight, {135, 206, 235}); // sky
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int isoX = (x - y) + height / 2;
+            int isoY = (x + y) / 2 - int(hmap[y * width + x] * outHeight / 2);
+            
+            if (isoX >= 0 && isoX < outWidth && isoY >= 0 && isoY < outHeight) {
+                image[isoY * outWidth + isoX] = shadeTerrain(hmap, x, y, width, height);
+            }
+        }
+    }
+
+    std::ofstream out(filename, std::ios::binary);
+    out << "P6\n" << outWidth << " " << outHeight << "\n255\n";
+    out.write(reinterpret_cast<char*>(image.data()), outWidth * outHeight * 3);
+    out.close();
+    std::cout << "Wrote " << filename << "\n";
+}
+
 // Convert [-1,1] to [0,255]
 static inline unsigned char toByte(float h) {
     h = std::fmax(-1.0f, std::fmin(1.0f, h));
@@ -127,7 +149,7 @@ int main() {
 
     // Noise settings
     float scale      = 250.0f;   // larger = smoother
-    int seed         = 69420;
+    int seed         = 3;
     float mix_ratio  = 0.55f;   // 0=Perlin, 1=Voronoi
 
     std::vector<float> heightmap(width * height);
@@ -136,6 +158,7 @@ int main() {
 
     writeColorPPM("terrain.ppm", heightmap, width, height);
     writeSideViewPPM("terrain_side.ppm", heightmap, width, height);
+    writeIsometricPPM("terrain_iso.ppm", heightmap, width, height);
     return 0;
 }
 
