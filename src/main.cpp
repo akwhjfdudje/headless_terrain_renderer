@@ -4,7 +4,6 @@
 #include <cmath>
 #include <algorithm>
 
-// Declare your CUDA function
 extern "C" void generateHeightmap(
     float* heightmap, int width, int height,
     float scale, int seed, float mix_ratio
