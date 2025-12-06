@@ -11,6 +11,19 @@ extern "C" void generateHeightmap(
 
 extern "C" void normalizeHeightmap(float* heightmap, int width, int height, float min_val, float max_val);
 
+extern "C" void erodeHeightmap(
+    float* heightmap,
+    float* watermap,
+    float* sedimentmap,
+    int width,
+    int height,
+    float timeStep,
+    float rainAmount,
+    float evapRate,
+    float capacity,
+    float depositRate,
+    float erosionRate);
+
 struct RGB { unsigned char r, g, b; };
 
 RGB heightToColor(float h) {
@@ -127,16 +140,26 @@ int main() {
     // Noise settings
     float scale      = 1000.0f;   // larger = smoother
     int seed         = 4132778;
-    float mix_ratio  = 0.4f;   // 0=Perlin, 1=Voronoi
+    float mix_ratio  = 0.2f;   // 0=Perlin, 1=Voronoi
 
     std::vector<float> heightmap(width * height);
+    std::vector<float> watermap(width * height, 0.0f);
+    std::vector<float> sedimentmap(width * height, 0.0f);
 
     generateHeightmap(heightmap.data(), width, height, scale, seed, mix_ratio);
 
-    // Normalize:
-    float min_val = *std::min_element(heightmap.begin(), heightmap.end());
-    float max_val = *std::max_element(heightmap.begin(), heightmap.end());
-    normalizeHeightmap(heightmap.data(), width, height, min_val, max_val);
+    // Erode: 
+    float timeStep    = 4000.0f;
+    float rainAmount  = 1.0f;
+    float evapRate    = 0.03f;
+    float capacity    = 8.0f;
+    float depositRate = 0.5f;
+    float erosionRate = 0.5f;
+
+    for (int i = 0; i < 4000; i++) 
+        erodeHeightmap(heightmap.data(), watermap.data(), sedimentmap.data(),
+                   width, height, timeStep, rainAmount, evapRate,
+                   capacity, depositRate, erosionRate);
 
     writeColorPPM("terrain.ppm", heightmap, width, height);
     writeIsometricPPM("terrain_iso.ppm", heightmap, width, height);

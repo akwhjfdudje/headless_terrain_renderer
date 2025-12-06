@@ -16,9 +16,14 @@ set(SOURCES
 # Create executable
 add_executable(terrainer ${SOURCES})
 
-# Link prebuilt CUDA kernel DLL
-# Assumes lib/cuda_kernels.lib is the import library
 target_link_libraries(terrainer
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/cuda_kernels.lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/../cuda_kernels/build/Release/cuda_kernels.lib
     cudart
+)
+
+add_custom_command(TARGET terrainer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/../cuda_kernels/build/Release/cuda_kernels.dll"
+        $<TARGET_FILE_DIR:terrainer>
+    COMMENT "Copying cuda_kernels.dll to output directory"
 )
