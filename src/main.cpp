@@ -30,36 +30,40 @@ RGB heightToColor(float h) {
     // h is in [-1, 1], remap to [0, 1]
     float t = (h + 1.0f) * 0.5f;
 
-    // Terrain bands
-    if (t < 0.3f) {
-        // Water
-        return { 25, 129, 226 };
+    if (t < 0.30f) {
+        // Deep water → shallow water
+        float f = t / 0.30f;
+        return {
+            (unsigned char)(10 + f * 40),
+            (unsigned char)(60 + f * 70),
+            (unsigned char)(140 + f * 100)
+        };
     }
-    else if (t < 0.45f) {
-        // Grass
-        float f = (t - 0.3f) / 0.15f;
-        return { 
-            (unsigned char)(20 + f * 40),
-            (unsigned char)(80 + f * 100),
-            (unsigned char)(20 + f * 40)
+    else if (t < 0.50f) {
+        // Grasslands
+        float f = (t - 0.30f) / 0.20f;
+        return {
+            (unsigned char)(30 + f * 50),
+            (unsigned char)(100 + f * 110),
+            (unsigned char)(30 + f * 40)
         };
     }
     else if (t < 0.75f) {
-        // Light grass / moss
-        float f = (t - 0.45f) / 0.30f;
+        // Rocky slopes
+        float f = (t - 0.50f) / 0.25f;
         return {
-            (unsigned char)(60 + f * 80),
-            (unsigned char)(140 + f * 90),
-            (unsigned char)(40 + f * 40)
+            (unsigned char)(80 + f * 60),
+            (unsigned char)(85 + f * 55),
+            (unsigned char)(70 + f * 50)
         };
     }
     else {
         // Snow
         float f = (t - 0.75f) / 0.25f;
         return {
-            (unsigned char)(180 + f * 75),
-            (unsigned char)(180 + f * 75),
-            (unsigned char)(180 + f * 75)
+            (unsigned char)(200 + f * 55),
+            (unsigned char)(200 + f * 55),
+            (unsigned char)(200 + f * 55)
         };
     }
 }
