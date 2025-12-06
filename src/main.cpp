@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -142,9 +143,10 @@ int main() {
     const int height = 1024;
 
     // Noise settings
-    float scale      = 1000.0f;   // larger = smoother
-    int seed         = 4132778;
-    float mix_ratio  = 0.2f;   // 0=Perlin, 1=Voronoi
+    float scale      = 700.0f;   // larger = smoother
+    std::srand(std::time({})); // use current time as seed for random generator
+    int seed         = std::rand(); //4132778;
+    float mix_ratio  = 0.6f;   // 0=Perlin, 1=Voronoi
 
     std::vector<float> heightmap(width * height);
     std::vector<float> watermap(width * height, 0.0f);
@@ -153,7 +155,7 @@ int main() {
     generateHeightmap(heightmap.data(), width, height, scale, seed, mix_ratio);
 
     // Erode: 
-    float timeStep    = 4000.0f;
+    float timeStep    = 400.0f;
     float rainAmount  = 1.0f;
     float evapRate    = 0.03f;
     float capacity    = 8.0f;
