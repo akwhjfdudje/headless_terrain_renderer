@@ -1,37 +1,24 @@
-cmake_minimum_required(VERSION 3.22)
-project(cuda_terrain_renderer LANGUAGES CXX CUDA)
+cmake_minimum_required(VERSION 3.18)
+project(terrainer LANGUAGES CXX CUDA)
 
-# Require C++17
+# Enable modern C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Include directories
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../cuda_kernels/include
-)
+# Make sure NVCC uses a decent architecture
+set(CMAKE_CUDA_ARCHITECTURES 52 60 61 70 75 86 89)
 
 # Source files
 set(SOURCES
     src/main.cpp
-    src/rgb.cpp
 )
 
 # Create executable
-add_executable(terrain_renderer ${SOURCES})
+add_executable(terrainer ${SOURCES})
 
 # Link prebuilt CUDA kernel DLL
 # Assumes lib/cuda_kernels.lib is the import library
-target_link_libraries(terrain_renderer
+target_link_libraries(terrainer
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/cuda_kernels.lib
     cudart
 )
-
-# Ensure the runtime DLL is available
-# (Optional: copy DLL to build output directory)
-add_custom_command(TARGET terrain_renderer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_SOURCE_DIR}/lib/cuda_kernels.dll
-        $<TARGET_FILE_DIR:terrain_renderer>
-)
-
