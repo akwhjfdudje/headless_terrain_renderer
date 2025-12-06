@@ -126,7 +126,7 @@ int main() {
     const int height = 1024;
 
     // Noise settings
-    float scale      = 25.0f;   // larger = smoother
+    float scale      = 250.0f;   // larger = smoother
     int seed         = 69420;
     float mix_ratio  = 0.55f;   // 0=Perlin, 1=Voronoi
 
