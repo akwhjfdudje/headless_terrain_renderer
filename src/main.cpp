@@ -155,14 +155,14 @@ int main() {
     generateHeightmap(heightmap.data(), width, height, scale, seed, mix_ratio);
 
     // Erode: 
-    float timeStep    = 400.0f;
-    float rainAmount  = 1.0f;
+    float timeStep    = 4.0f;
+    float rainAmount  = 0.5f;
     float evapRate    = 0.03f;
-    float capacity    = 8.0f;
+    float capacity    = 4.0f;
     float depositRate = 0.5f;
     float erosionRate = 0.5f;
 
-    for (int i = 0; i < 4000; i++) 
+    for (int i = 0; i < 7000; i++) 
         erodeHeightmap(heightmap.data(), watermap.data(), sedimentmap.data(),
                    width, height, timeStep, rainAmount, evapRate,
                    capacity, depositRate, erosionRate);
